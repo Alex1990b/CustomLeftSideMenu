@@ -8,23 +8,51 @@
 
 import UIKit
 
-class LeftSideMenyViewController: UIViewController {
+protocol SideMenuDraggable: class {
+    func dragChanged(with offset: CGFloat)
+    func dragEnded(with offset: CGFloat)
+    func dragFinished()
+}
 
+final class LeftSideMenyViewController: UIViewController {
+    
+    //MARK: Variables
+    private var dragBeginning = TimeInterval()
+    weak var delegate: SideMenuDraggable?
+    
+    //MARK: LeftSideMenyViewController Life Cycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        addRecognizers()
     }
+}
+
+//MARK: @IBActions
+
+private extension LeftSideMenyViewController {
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    @objc func handleDragges(_ sender: UIPanGestureRecognizer) {
+        let translation = sender.translation(in: view)
+        
+        guard translation.x < 0 else { return }
+        
+        switch sender.state {
+        case .began:   dragBeginning = ProcessInfo.processInfo.systemUptime
+        case .changed: delegate?.dragChanged(with: translation.x)
+        case.ended:
+            let difference = ProcessInfo.processInfo.systemUptime - dragBeginning
+            difference > 0.1 ? delegate?.dragChanged(with: translation.x) : delegate?.dragFinished()
+            
+        default: break }
     }
-    */
+}
 
+//MARK: Private methods
+
+private extension LeftSideMenyViewController {
+    func addRecognizers() {
+        let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handleDragges))
+        view.addGestureRecognizer(panGestureRecognizer)
+    }
 }
