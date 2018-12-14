@@ -42,7 +42,7 @@ private extension LeftSideMenyViewController {
         case .changed: delegate?.dragChanged(with: translation.x)
         case.ended:
             let difference = ProcessInfo.processInfo.systemUptime - dragBeginning
-            difference > 0.1 ? delegate?.dragChanged(with: translation.x) : delegate?.dragFinished()
+            difference > 0.1 ? delegate?.dragEnded(with: translation.x) : delegate?.dragFinished()
             
         default: break }
     }

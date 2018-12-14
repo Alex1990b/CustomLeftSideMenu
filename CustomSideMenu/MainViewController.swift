@@ -44,6 +44,9 @@ final class MainViewController: UIViewController, ViewAnimatable {
     override func viewDidLoad() {
         super.viewDidLoad()
         closeLeftMenu()
+        let tapGestureRecognizer = UITapGestureRecognizer(target: self,
+                                                          action: #selector(overlayViewDidTapped))
+        overlayView.addGestureRecognizer(tapGestureRecognizer)
         children.forEach { ($0 as? LeftSideMenyViewController)?.delegate = self }
     }
 }
@@ -55,6 +58,10 @@ private extension MainViewController {
         leftMenuLeadingConstraint.constant = leftMenuLeadingConstraint.constant < 0 ? 0 : -leftMenuWidth
         overlayView.alpha =  leftMenuLeadingConstraint.constant == 0 ? overlayViewMaxAlpha : overlayViewMinAlpha
         animateLayoutIfNeeded()
+    }
+    
+    @objc func overlayViewDidTapped() {
+        closeLeftMenu()
     }
 }
 
@@ -79,19 +86,22 @@ extension MainViewController: SideMenuDraggable {
         leftMenuLeadingConstraint.constant = offset
         
         // needed to change alpha depending on the position of the menu
-        let currentOffsetInPercent = (offset * 100) / (leftMenuWidth / 2)
+        let currentOffsetInPercent = (offset * 100) / (leftMenuWidth)
         let currentAlphaOffset = (0.5 * currentOffsetInPercent) / 100
+        print(currentAlphaOffset)
         
-        overlayView.alpha =  overlayViewMaxAlpha - currentAlphaOffset
+        overlayView.alpha =  overlayViewMaxAlpha - currentAlphaOffset.magnitude
         animateLayoutIfNeeded()
     }
     
     func dragEnded(with offset: CGFloat) {
-        guard offset != 0 else { return }
-        
-        leftMenuLeadingConstraint.constant = offset.magnitude <= (leftMenuWidth / 2)
-            ? 0
-            : -leftMenuWidth
+
+        if  offset.magnitude <= (leftMenuWidth / 2) {
+             leftMenuLeadingConstraint.constant = 0
+        } else {
+            leftMenuLeadingConstraint.constant =  -leftMenuWidth
+        }
+       
         overlayView.alpha =  leftMenuLeadingConstraint.constant == 0 ? overlayViewMaxAlpha : overlayViewMinAlpha
         animateLayoutIfNeeded()
     }
